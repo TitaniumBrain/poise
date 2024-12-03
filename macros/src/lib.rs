@@ -324,7 +324,6 @@ fn group_impl(args: TokenStream, input_item: TokenStream) -> Result<TokenStream,
 
     let group_args = <command::GroupArgs as darling::FromMeta>::from_list(&args)?;
 
-    // let item_impl = syn::parse_macro_input!(input_item as syn::ItemImpl);
     let item_impl = match syn::parse::<syn::ItemImpl>(input_item) {
         Ok(syntax_tree) => syntax_tree,
         Err(err) => return Err(err.into()),

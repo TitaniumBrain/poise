@@ -367,7 +367,7 @@ fn group_impl(args: TokenStream, input_item: TokenStream) -> Result<TokenStream,
 
                 if ctx_type_with_static.is_none() {
                     let context_type = match function.sig.inputs.first() {
-                        Some(syn::FnArg::Typed(syn::PatType { ty, .. })) => Some(&**ty),
+                        Some(syn::FnArg::Typed(syn::PatType { ty, .. })) => &**ty,
                         _ => {
                             return Err(syn::Error::new(
                                 function.sig.span(),
@@ -379,9 +379,7 @@ fn group_impl(args: TokenStream, input_item: TokenStream) -> Result<TokenStream,
                     // Needed because we're not allowed to have lifetimes in the hacky use case below (in command::mod.rs)
                     ctx_type_with_static = Some(syn::fold::fold_type(
                         &mut crate::util::AllLifetimesToStatic,
-                        context_type
-                            .expect("context_type should have already been set")
-                            .clone(),
+                        context_type.clone(),
                     ));
                 }
                 item_stream = command::command(new_args, function)?.into();

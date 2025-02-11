@@ -221,6 +221,21 @@ impl CommandArgs {
             } else {
                 self.member_cooldown
             },
+            manual_cooldowns: if Self::is_default(&self.manual_cooldowns) {
+                group_args.manual_cooldowns
+            } else {
+                self.manual_cooldowns
+            },
+            install_context: if Self::is_default(&self.install_context) {
+                group_args.install_context.clone()
+            } else {
+                self.install_context.clone()
+            },
+            interaction_context: if Self::is_default(&self.interaction_context) {
+                group_args.interaction_context.clone()
+            } else {
+                self.interaction_context.clone()
+            },
         }
     }
 }
@@ -276,6 +291,11 @@ pub struct GroupArgs {
     guild_cooldown: Option<u64>,
     channel_cooldown: Option<u64>,
     member_cooldown: Option<u64>,
+
+    manual_cooldowns: Option<bool>,
+
+    install_context: Option<syn::punctuated::Punctuated<syn::Ident, syn::Token![|]>>,
+    interaction_context: Option<syn::punctuated::Punctuated<syn::Ident, syn::Token![|]>>,
 }
 
 /// Representation of the function parameter attribute arguments

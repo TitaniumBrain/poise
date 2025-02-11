@@ -58,6 +58,11 @@ pub struct Command<U, E> {
     /// Multiline description with detailed usage instructions. Displayed in the command specific
     /// help: `~help command_name`
     pub help_text: Option<String>,
+    /// if `true`, disables automatic cooldown handling before this commands invocation.
+    ///
+    /// Will override [`crate::FrameworkOptions::manual_cooldowns`] allowing manual cooldowns
+    /// on select commands.
+    pub manual_cooldowns: Option<bool>,
     /// Handles command cooldowns. Mainly for framework internal use
     pub cooldowns: std::sync::Mutex<crate::CooldownTracker>,
     /// Configuration for the [`crate::CooldownTracker`]
@@ -122,6 +127,10 @@ pub struct Command<U, E> {
     pub context_menu_name: Option<String>,
     /// Whether responses to this command should be ephemeral by default (application-only)
     pub ephemeral: bool,
+    /// List of installation contexts for this command (application-only)
+    pub install_context: Option<Vec<serenity::InstallationContext>>,
+    /// List of interaction contexts for this command (application-only)
+    pub interaction_context: Option<Vec<serenity::InteractionContext>>,
 
     // Like #[non_exhaustive], but #[poise::command] still needs to be able to create an instance
     #[doc(hidden)]
@@ -196,7 +205,17 @@ impl<U, E> Command<U, E> {
         }
 
         if self.guild_only {
-            builder = builder.dm_permission(false);
+            builder = builder.contexts(vec![serenity::InteractionContext::Guild]);
+        } else if self.dm_only {
+            builder = builder.contexts(vec![serenity::InteractionContext::BotDm]);
+        }
+
+        if let Some(install_context) = self.install_context.clone() {
+            builder = builder.integration_types(install_context);
+        }
+
+        if let Some(interaction_context) = self.interaction_context.clone() {
+            builder = builder.contexts(interaction_context);
         }
 
         if self.subcommands.is_empty() {
@@ -230,7 +249,17 @@ impl<U, E> Command<U, E> {
         });
 
         if self.guild_only {
-            builder = builder.dm_permission(false);
+            builder = builder.contexts(vec![serenity::InteractionContext::Guild]);
+        } else if self.dm_only {
+            builder = builder.contexts(vec![serenity::InteractionContext::BotDm]);
+        }
+
+        if let Some(install_context) = self.install_context.clone() {
+            builder = builder.integration_types(install_context);
+        }
+
+        if let Some(interaction_context) = self.interaction_context.clone() {
+            builder = builder.contexts(interaction_context);
         }
 
         Some(builder)

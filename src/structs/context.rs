@@ -135,7 +135,7 @@ context_methods! {
     /// Like [`Self::say`], but formats the message as a reply to the user's command
     /// message.
     ///
-    /// Equivalent to `.send(|b| b.content("...").reply(true))`.
+    /// Equivalent to `.send(CreateReply::default().content("...").reply(true))`.
     ///
     /// Only has an effect in prefix context, because slash command responses are always
     /// formatted as a reply.
@@ -300,7 +300,7 @@ context_methods! {
     }
 
     /// Return a ID that uniquely identifies this command invocation.
-    #[cfg(any(feature = "chrono", feature = "time"))]
+    #[cfg(feature = "chrono")]
     (id self)
     (pub fn id(self) -> u64) {
         match self {
@@ -316,11 +316,6 @@ context_methods! {
 
                     // Calculate Discord's datetime representation (millis since Discord epoch) and
                     // insert those bits into the ID
-
-                    #[cfg(feature = "time")]
-                    let timestamp_millis = edited_timestamp.unix_timestamp_nanos() / 1_000_000;
-
-                    #[cfg(not(feature = "time"))]
                     let timestamp_millis = edited_timestamp.timestamp_millis();
 
                     id |= ((timestamp_millis - 1420070400000) as u64) << 22;

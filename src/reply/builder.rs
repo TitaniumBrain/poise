@@ -17,6 +17,8 @@ pub struct CreateReply {
     pub components: Option<Vec<serenity::CreateActionRow>>,
     /// The allowed mentions for the message.
     pub allowed_mentions: Option<serenity::CreateAllowedMentions>,
+    /// Message poll, if present.
+    pub poll: Option<serenity::CreatePoll<serenity::builder::create_poll::Ready>>,
     /// Whether this message is an inline reply.
     pub reply: bool,
     #[doc(hidden)]
@@ -47,8 +49,6 @@ impl CreateReply {
     }
 
     /// Add an attachment.
-    ///
-    /// This will not have an effect in a slash command's initial response!
     pub fn attachment(mut self, attachment: serenity::CreateAttachment) -> Self {
         self.attachments.push(attachment);
         self
@@ -67,6 +67,17 @@ impl CreateReply {
     /// See [`serenity::CreateAllowedMentions`] for more information.
     pub fn allowed_mentions(mut self, allowed_mentions: serenity::CreateAllowedMentions) -> Self {
         self.allowed_mentions = Some(allowed_mentions);
+        self
+    }
+
+    /// Adds a poll to the message. Only one poll can be added per message.
+    ///
+    /// See [`serenity::CreatePoll`] for more information on creating and configuring a poll.
+    pub fn poll(
+        mut self,
+        poll: serenity::CreatePoll<serenity::builder::create_poll::Ready>,
+    ) -> Self {
+        self.poll = Some(poll);
         self
     }
 
@@ -96,6 +107,7 @@ impl CreateReply {
             components,
             ephemeral,
             allowed_mentions,
+            poll,
             reply: _, // can't reply to a message in interactions
             __non_exhaustive: (),
         } = self;
@@ -111,6 +123,9 @@ impl CreateReply {
         }
         if let Some(ephemeral) = ephemeral {
             builder = builder.ephemeral(ephemeral);
+        }
+        if let Some(poll) = poll {
+            builder = builder.poll(poll);
         }
 
         builder.add_files(attachments).embeds(embeds)
@@ -128,6 +143,7 @@ impl CreateReply {
             components,
             ephemeral,
             allowed_mentions,
+            poll,
             reply: _,
             __non_exhaustive: (),
         } = self;
@@ -145,6 +161,9 @@ impl CreateReply {
         if let Some(ephemeral) = ephemeral {
             builder = builder.ephemeral(ephemeral);
         }
+        if let Some(poll) = poll {
+            builder = builder.poll(poll);
+        }
 
         builder.add_files(attachments)
     }
@@ -157,10 +176,12 @@ impl CreateReply {
         let crate::CreateReply {
             content,
             embeds,
-            attachments: _, // no support for attachment edits in serenity yet
+            attachments,
             components,
             ephemeral: _, // can't edit ephemerality in retrospect
             allowed_mentions,
+            // cannot edit polls.
+            poll: _,
             reply: _,
             __non_exhaustive: (),
         } = self;
@@ -173,6 +194,9 @@ impl CreateReply {
         }
         if let Some(allowed_mentions) = allowed_mentions {
             builder = builder.allowed_mentions(allowed_mentions);
+        }
+        for attachment in attachments {
+            builder = builder.new_attachment(attachment);
         }
 
         builder.embeds(embeds)
@@ -187,6 +211,8 @@ impl CreateReply {
             components,
             ephemeral: _, // not supported in prefix
             allowed_mentions,
+            // cannot edit polls.
+            poll: _,
             reply: _, // can't edit reference message afterwards
             __non_exhaustive: (),
         } = self;
@@ -221,6 +247,7 @@ impl CreateReply {
             components,
             ephemeral: _, // not supported in prefix
             allowed_mentions,
+            poll,
             reply,
             __non_exhaustive: (),
         } = self;
@@ -237,6 +264,9 @@ impl CreateReply {
         }
         if reply {
             builder = builder.reference_message(invocation_message);
+        }
+        if let Some(poll) = poll {
+            builder = builder.poll(poll);
         }
 
         for attachment in attachments {

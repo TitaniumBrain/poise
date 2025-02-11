@@ -38,7 +38,7 @@ async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
 
 #[tokio::main]
 async fn main() {
-    env_logger::init();
+    tracing_subscriber::fmt::init();
 
     // FrameworkOptions contains all of poise's configuration option in one struct
     // Every option can be omitted to use its default value
@@ -50,8 +50,8 @@ async fn main() {
                 Duration::from_secs(3600),
             ))),
             additional_prefixes: vec![
-                poise::Prefix::Literal("hey bot"),
                 poise::Prefix::Literal("hey bot,"),
+                poise::Prefix::Literal("hey bot"),
             ],
             ..Default::default()
         },

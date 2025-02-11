@@ -39,6 +39,8 @@ for example for command-specific help (i.e. `~help command_name`). Escape newlin
 - `category`: Category of this command which affects placement in the help command
 - `custom_data`: Arbitrary expression that will be boxed and stored in `Command::custom_data`
 - `identifying_name`: Optionally, a unique identifier for this command for your personal usage
+- `install_context`: Installation contexts where this command is available (slash-only)
+- `interaction_context`: Interaction contexts where this command is available (slash-only)
 
 ## Checks
 
@@ -69,7 +71,7 @@ for example for command-specific help (i.e. `~help command_name`). Escape newlin
 - `reuse_response`: After the first response, post subsequent responses as edits to the initial message (prefix only)
 
 ## Cooldown
-
+- `manual_cooldowns`: Allows overriding the framework's built-in cooldowns tracking without affecting other commands.
 - `global_cooldown`: Minimum duration in seconds between invocations, globally
 - `user_cooldown`: Minimum duration in seconds between invocations, per user
 - `guild_cooldown`: Minimum duration in seconds between invocations, per guild

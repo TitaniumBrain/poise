@@ -328,7 +328,7 @@ fn group_impl(args: TokenStream, input_item: TokenStream) -> Result<TokenStream,
         Ok(syntax_tree) => syntax_tree,
         Err(err) => return Err(err.into()),
     };
-    let name = item_impl.self_ty;
+    let name = &item_impl.self_ty;
 
     // vector of all #[poise::command(...)] command idents
     let mut command_idents = vec![];
@@ -391,23 +391,26 @@ fn group_impl(args: TokenStream, input_item: TokenStream) -> Result<TokenStream,
         );
     }
 
-    Ok(quote! {
-        impl ::poise::CommandGroup for #name {
-            type Data = <#ctx_type_with_static as poise::_GetGenerics>::U;
-            type Error = <#ctx_type_with_static as poise::_GetGenerics>::E;
+    match ctx_type_with_static {
+        Some(ctx_type_with_static) => Ok(quote! {
+            impl ::poise::CommandGroup for #name {
+                type Data = <#ctx_type_with_static as poise::_GetGenerics>::U;
+                type Error = <#ctx_type_with_static as poise::_GetGenerics>::E;
 
-            fn commands() -> Vec<::poise::Command<
-                <#ctx_type_with_static as poise::_GetGenerics>::U,
-                <#ctx_type_with_static as poise::_GetGenerics>::E,
-            >> {
-                vec![#(#name::#command_idents()),*]
+                fn commands() -> Vec<::poise::Command<
+                    <#ctx_type_with_static as poise::_GetGenerics>::U,
+                    <#ctx_type_with_static as poise::_GetGenerics>::E,
+                >> {
+                    vec![#(#name::#command_idents()),*]
+                }
+            }
+            impl #name {
+                #impl_body
             }
         }
-        impl #name {
-            #impl_body
-        }
+        .into()),
+        None => Err(syn::Error::new(item_impl.span(), "expected a Context parameter").into()),
     }
-    .into())
 }
 
 /// Returns true if an `Attribute` has `path` equal to "poise::command" or "command"

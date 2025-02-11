@@ -7,16 +7,38 @@ type Context<'a> = poise::Context<'a, Data, Error>;
 // Custom user data passed to all command functions
 pub struct Data {}
 
-// Group struct
-struct Test {}
+/// A Group with one command
+struct TestOneCommand {}
 
-#[poise::group(category = "Foo")]
-impl Test {
-    // Just a test
-    #[poise::command(slash_command, prefix_command, rename = "test")]
-    async fn test_command(ctx: Context<'_>) -> Result<(), Error> {
+#[poise::group(category = "One")]
+impl TestOneCommand {
+    /// Say hello
+    #[poise::command(slash_command, prefix_command, rename = "hello")]
+    async fn say_hello(ctx: Context<'_>) -> Result<(), Error> {
         let name = ctx.author();
         ctx.say(format!("Hello, {}", name)).await?;
+        Ok(())
+    }
+}
+
+/// A Group with multiple commands
+struct TestMultipleCommands {}
+
+#[poise::group(category = "Multiple")]
+impl TestMultipleCommands {
+    /// Add one to a number
+    #[poise::command(slash_command, prefix_command, rename = "plus")]
+    async fn add_one(ctx: Context<'_>, number: u32) -> Result<(), Error> {
+        let add_result = number.wrapping_add(1);
+        ctx.say(format!("{number} + 1 = {add_result}")).await?;
+        Ok(())
+    }
+
+    /// Take one from a number
+    #[poise::command(slash_command, prefix_command, rename = "minus")]
+    async fn subtract_one(ctx: Context<'_>, number: u32) -> Result<(), Error> {
+        let add_result = number.wrapping_sub(1);
+        ctx.say(format!("{number} - 1 = {add_result}")).await?;
         Ok(())
     }
 }
@@ -44,10 +66,13 @@ async fn main() {
     // FrameworkOptions contains all of poise's configuration option in one struct
     // Every option can be omitted to use its default value
     // println!("{:#?}", Test::commands());
-    let commands: Vec<Command<Data, Error>> = Test::commands();
+    let commands: Vec<Command<Data, Error>> = TestOneCommand::commands()
+        .into_iter()
+        .chain(TestMultipleCommands::commands().into_iter())
+        .collect();
 
     let options = poise::FrameworkOptions {
-        commands: commands,
+        commands,
         prefix_options: poise::PrefixFrameworkOptions {
             prefix: Some("--".into()),
             edit_tracker: Some(Arc::new(poise::EditTracker::for_timespan(
